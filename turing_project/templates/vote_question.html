@@ -1,0 +1,49 @@
+<!-- vote_question.html -->
+{% extends 'turing_app/base.html' %}
+
+{% block content %}
+    <h2>Pregunta Respuesta</h2>
+    <p>{{ question.question }}</p>
+    <p><strong>Respuesta:</strong> {{ question.response }}</p>
+
+    <form id="voteForm" method="POST" data-question-id="{{ question.id }}">
+        {% csrf_token %}
+        <label>¿Fue un humano quien respondió?</label>
+        <input type="radio" name="is_human" value="true" required> Sí
+        <input type="radio" name="is_human" value="false" required> No
+        <br>
+        <button type="submit">Enviar mi voto</button>
+    </form>
+
+    <div id="voteMessage"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('voteForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        var form = event.target;
+        var questionId = form.getAttribute('data-question-id');
+        var formData = new FormData(form);
+
+        fetch(`/vote-question/${questionId}/`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensaje de éxito
+                document.getElementById('voteMessage').innerText = data.message;
+
+                // Actualizar la vista de la pregunta
+                const isHumanText = data.is_human ? 'Humano' : 'IA';
+                document.getElementById('voteMessage').innerHTML += `<p>La respuesta fue dada por: ${isHumanText}</p>`;
+            } else {
+                document.getElementById('voteMessage').innerText = 'Hubo un error al enviar el voto.';
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -9,7 +9,7 @@ urlpatterns = [
     path('submit-question/', views.submit_question, name='submit_question'),
     path('answer-question/', views.answer_question, name='answer_question'),
     path('get_latest-response/', views.get_latest_response, name='get_latest_response'),
-    path('vote-question/<int:question_id>/', views.vote_question, name='vote_question'),
+    path('vote-question/', views.vote_question, name='vote_question'),
 
     # Autenticación
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),

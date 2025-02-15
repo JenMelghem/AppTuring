@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,8 +9,8 @@
     <script src="https://unpkg.com/@heroicons/react@2.0.11/dist/index.umd.js"></script>    <!--icono de carga-->
 </head>
 
-<body class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-5 relative overflow-hidden" style="background-image: url('material/fondo2.jpg');">
-    <img src="material/logo.png" alt="Logo" class="fixed top-5 right-5 w-[10vw] h-[10vw] max-w-32 max-h-32">
+<body class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-5 relative overflow-hidden" style="background-image: url('{% static 'turing_app/fondo2.jpg' %}');"> <!-- # noqa -->
+    <img src="{% static 'turing_app/logo.png' %}" alt="Logo" class="fixed top-5 right-5 w-[10vw] h-[10vw] max-w-32 max-h-32">
 
     <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-8">TEST DE TURING</h1>
     <p class="text-sm sm:text-base md:text-lg text-center max-w-2xl overflow-hidden">
@@ -19,7 +20,7 @@
         ¡Pon a prueba tu intuición y disfruta del desafío! 🚀
     </p>
 
-    <img src="material/bot.png" alt="bot" class="fixed bottom-0 left-0 -translate-x-20 w-[30vw] h-[45vw] max-w-[400px] max-h-[600px] opacity-60">
+    <img src="{% static 'turing_app/bot.png' %}" alt="bot" class="fixed bottom-0 left-0 -translate-x-20 w-[30vw] h-[45vw] max-w-[400px] max-h-[600px] opacity-60">
 
     <!-- Contenedor del formulario -->
     <div id="form-container" class="mt-6 w-full max-w-lg px-4">
@@ -55,8 +56,12 @@
             <p id="response-text" class="text-lg font-semibold"></p>
             <p class="mt-2 text-md">¿Fue respondida por un humano o una IA?</p>
             <div class="mt-4">
-                <button id="vote-human" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition mr-4">Humano</button>
-                <button id="vote-ia" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">IA</button>
+                <form action="{% url 'vote_question' %}" method="post" id="voteForm">
+                    {% csrf_token %}
+                    <button type="submit" name="is_human" value="true" id="vote-human" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition mr-4">Humano</button>
+                    <button type="submit" name="is_human" value="false" id="vote-ia" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">IA</button>
+                    <input id="idPregunta" class="hidden" name="question_id" value=""></label>
+                </form>
             </div>
         </div>
     </div>
@@ -81,18 +86,19 @@
             try {
                 // Enviar la pregunta al backend
                 const response = await fetch("{% url 'submit_question' %}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',  // Incluir el token CSRF
-                },
-                body: new URLSearchParams({
-                    'question': question,
-                })
-});
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',  // Incluir el token CSRF
+                    },
+                    body: new URLSearchParams({
+                        'question': question,
+                    })
+                });
                 const data = await response.json();
     
                 if (response.ok) {
                     // En este punto, la pregunta fue recibida, ahora verificamos la respuesta del admin
+                    document.getElementById('idPregunta').value = data.id;
                     checkAdminResponse();
                 } else {
                     alert(`Error: ${data.error}`);
@@ -101,24 +107,41 @@
                 alert('Hubo un error al enviar la pregunta.');
             }
         });
-    
+        
         // Función para verificar la respuesta del administrador
         async function checkAdminResponse() {
-            const interval = setInterval(async () => {
-                const response = await fetch("{% url 'get_latest_response' %}");
-    
+            const checkeo = setInterval(async () => {
+                const response = await fetch("{% url 'answer_question' %}",{
+                    method: 'GET',
+                });
                 const data = await response.json();
-    
                 if (response.ok) {
-                    // Se recibió la respuesta, mostramos la respuesta y la votación
-                    document.getElementById('loading-container').classList.add('hidden');
-                    document.getElementById('form-container').classList.remove('hidden');
-                    alert(`Respuesta: ${data.response}\n¿Es humano? ${data.is_human ? 'Sí' : 'No'}`);
-    
-                    // Detenemos la verificación
-                    clearInterval(interval);
+                    const interval = setInterval(async () => {
+                        const response = await fetch("{% url 'get_latest_response' %}");
+            
+                        const data = await response.json();
+            
+                        if (response.ok) {
+                            // Se recibió la respuesta, mostramos la respuesta y la votación
+                            document.getElementById('loading-container').classList.add('hidden');
+                            // document.getElementById('form-container').classList.remove('hidden');
+                            
+                            document.getElementById('response-container').classList.remove('hidden');
+                            document.getElementById('response-text').innerText = data.response;
+                            // alert(`Respuesta: ${data.response}\n¿Es humano? ${data.is_human ? 'Sí' : 'No'}`); 
+            
+                            // Detenemos la verificación
+                            clearInterval(interval);
+                        }
+                        clearInterval(checkeo);
+                    }, 1000);
+            
+                }else{
+                    //alert('No hay respuesta');
+                    confirmacion = false;
                 }
-            }, 5000); // Revisa cada 5 segundos
+            }, 1000); 
+            // Revisa cada 5 segundos
         }
     </script>
 </body>

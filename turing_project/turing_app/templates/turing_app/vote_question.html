@@ -1,21 +1,37 @@
-<!-- vote_question.html -->
 {% extends 'turing_app/base.html' %}
 
+
+{% load static %}
 {% block content %}
-    <h2>Pregunta Respuesta</h2>
-    <p>{{ question.question }}</p>
-    <p><strong>Respuesta:</strong> {{ question.response }}</p>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <div class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-5 relative overflow-hidden" style="background-image: url('{% static 'turing_app/fondo2.jpg' %}');">
+        <img src="{% static 'turing_app/logo.png' %}" alt="Logo" class="fixed top-5 right-5 w-[10vw] h-[10vw] max-w-32 max-h-32">
+        
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-8">Pregunta Respuesta</h2>
+        <p class="text-lg sm:text-xl text-center max-w-2xl overflow-hidden mb-4">{{ question.question }}</p>
+        <p class="text-base sm:text-lg text-center mb-8"><strong>Respuesta:</strong> {{ question.response }}</p>
 
-    <form id="voteForm" method="POST" data-question-id="{{ question.id }}">
-        {% csrf_token %}
-        <label>¿Fue un humano quien respondió?</label>
-        <input type="radio" name="is_human" value="true" required> Sí
-        <input type="radio" name="is_human" value="false" required> No
-        <br>
-        <button type="submit">Enviar mi voto</button>
-    </form>
+        <!-- Formulario de Voto -->
+        <div class="w-full max-w-lg px-4 bg-white text-black rounded-lg shadow-lg p-6">
+            <form id="voteForm" method="POST" data-question-id="{{ question.id }}">
+                {% csrf_token %}
+                <div class="flex flex-col items-center mb-4">
+                    <label class="mb-2 text-lg font-semibold">¿Fue un humano quien respondió?</label>
+                    <div class="flex space-x-4">
+                        <label>
+                            <input type="radio" name="is_human" value="true" required> Sí
+                        </label>
+                        <label>
+                            <input type="radio" name="is_human" value="false" required> No
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">Enviar mi voto</button>
+            </form>
+        </div>
 
-    <div id="voteMessage"></div>
+        <div id="voteMessage" class="mt-4 text-center text-lg text-yellow-400"></div>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
@@ -33,17 +49,19 @@
         })
         .then(response => response.json())
         .then(data => {
+            const voteMessage = document.getElementById('voteMessage');
             if (data.success) {
                 // Mostrar mensaje de éxito
-                document.getElementById('voteMessage').innerText = data.message;
+                voteMessage.innerText = data.message;
 
                 // Actualizar la vista de la pregunta
                 const isHumanText = data.is_human ? 'Humano' : 'IA';
-                document.getElementById('voteMessage').innerHTML += `<p>La respuesta fue dada por: ${isHumanText}</p>`;
+                voteMessage.innerHTML += `<p>La respuesta fue dada por: ${isHumanText}</p>`;
             } else {
-                document.getElementById('voteMessage').innerText = 'Hubo un error al enviar el voto.';
+                voteMessage.innerText = 'Hubo un error al enviar el voto.';
             }
         });
     });
 </script>
 {% endblock %}
+

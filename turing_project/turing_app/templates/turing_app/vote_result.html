@@ -1,12 +1,25 @@
-<!-- vote_result.html -->
 {% extends 'turing_app/base.html' %}
 
+
+{% load static %}
 {% block content %}
-    <h2 class="text-2xl font-bold text-center mb-6">Resultado del Voto</h2>
-    <p>{{ message }}</p>
-    {% if correct %}
-        <p class="text-green-600">¡Has acertado!</p>
-    {% else %}
-        <p class="text-red-600">Lo siento, tu respuesta fue incorrecta.</p>
-    {% endif %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <div class="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-5 relative overflow-hidden" style="background-image: url('{% static 'turing_app/fondo2.jpg' %}');">
+        <img src="{% static 'turing_app/logo.png' %}" alt="Logo" class="fixed top-10 right-5 w-[10vw] h-[10vw] max-w-32 max-h-32">
+        
+        
+        <<img src="{% static 'turing_app/bot.png' %}" alt="bot" class="fixed bottom-0 left-0 -translate-x-20 w-[30vw] h-[45vw] max-w-[300px] max-h-[500px] opacity-60">
+
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8">Resultado del Voto</h2>
+
+        <div class="bg-white text-black p-6 rounded-lg shadow-lg w-full max-w-lg px-4 text-center">
+            <p class="text-lg mb-4">{{ message }}</p>
+            {% if correct %}
+                <p class="text-green-600 text-xl font-semibold">¡Has acertado!</p>
+            {% else %}
+                <p class="text-red-600 text-xl font-semibold">Lo siento, tu respuesta fue incorrecta.</p>
+            {% endif %}
+        </div>
+    </div>
 {% endblock %}
+

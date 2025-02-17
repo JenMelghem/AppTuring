@@ -1,72 +1,77 @@
 {% extends 'turing_app/base.html' %}
+{% load static %}
 
 {% block content %}
-<h2 class="text-2xl font-bold text-center mb-6">Panel de Administrador</h2>
+<script src="https://cdn.tailwindcss.com"></script>
+<div class="min-h-screen flex justify-center items-center bg-cover bg-center" style="background-image: url({% static 'turing_app/fondo2.jpg' %});">
+    <div class="w-full max-w-3xl bg-gray-200 p-6 rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-bold text-center mb-6">Panel de Administrador</h2>
 
-<!-- Preguntas Pendientes -->
-<h3 class="text-xl font-semibold mb-4">Preguntas Pendientes</h3>
-{% if pending_questions %}
-    <ul>
-        {% for question in pending_questions %}
-        <li class="mb-4 p-4 bg-blue-600 rounded-lg shadow-md text-white">
-            <p class="mb-2"><strong>Pregunta:</strong> {{ question.question }}</p>
-            <form method="POST" action="{% url 'answer_question' %}" id="answerForm">
-                {% csrf_token %}
-                <div class="mb-4">
-                    <textarea name="response" placeholder="Escribe tu respuesta aquí..." class="w-full p-2 text-black rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
-                </div>
-                <div class="mb-4">
-                    <label class="text-sm font-medium">¿Es humano?</label>
-                    <input type="checkbox" name="is_human" value="true" class="ml-2">
-                </div>
-                <input type="hidden" name="question_id" value="{{ question.id }}">
-                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Responder</button>
-            </form>
-        </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p class="text-gray-300">No hay preguntas pendientes en este momento.</p>
-{% endif %}
+        <!-- Preguntas Pendientes -->
+        <h3 class="text-xl font-semibold mb-4">Preguntas Pendientes</h3>
+        {% if pending_questions %}
+            <ul>
+                {% for question in pending_questions %}
+                <li class="mb-4 p-4 bg-blue-600 rounded-lg shadow-md text-white">
+                    <p class="mb-2"><strong>Pregunta:</strong> {{ question.question }}</p>
+                    <form method="POST" action="{% url 'answer_question' %}" class="answerForm">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <textarea name="response" placeholder="Escribe tu respuesta aquí..." class="w-full p-2 text-black rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-sm font-medium">¿Es humano?</label>
+                            <input type="checkbox" name="is_human" value="true" class="ml-2">
+                        </div>
+                        <input type="hidden" name="question_id" value="{{ question.id }}">
+                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition">Responder</button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-700">No hay preguntas pendientes en este momento.</p>
+        {% endif %}
 
-<!-- Preguntas Respondidas -->
-<h3 class="text-xl font-semibold mt-8 mb-4">Preguntas Respondidas</h3>
-{% if answered_questions %}
-    <ul>
-        {% for question in answered_questions %}
-        <li class="mb-4 p-4 bg-gray-800 rounded-lg shadow-md text-white">
-            <p class="mb-2"><strong>Pregunta:</strong> {{ question.question }}</p>
-            <p class="mb-2"><strong>Respuesta:</strong> {{ question.response }}</p>
-            <p><strong>¿Es humano?</strong> {{ question.is_human|yesno:"Sí,No" }}</p>
-        </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p class="text-gray-300">No hay preguntas respondidas en este momento.</p>
-{% endif %}
+        <!-- Preguntas Respondidas -->
+        <h3 class="text-xl font-semibold mt-8 mb-4">Preguntas Respondidas</h3>
+        {% if answered_questions %}
+            <ul>
+                {% for question in answered_questions %}
+                <li class="mb-4 p-4 bg-gray-800 rounded-lg shadow-md text-white">
+                    <p class="mb-2"><strong>Pregunta:</strong> {{ question.question }}</p>
+                    <p class="mb-2"><strong>Respuesta:</strong> {{ question.response }}</p>
+                    <p><strong>¿Es humano?</strong> {{ question.is_human|yesno:"Sí,No" }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-700">No hay preguntas respondidas en este momento.</p>
+        {% endif %}
+    </div>
+</div>
+
 <script>
-    document.getElementById('answerForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
-        // Obtener los datos del formulario
-        const formData = new FormData(this);
+    document.querySelectorAll('.answerForm').forEach(form => {
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
 
-        // Realizar la solicitud al servidor
-        const response = await fetch(this.action, {
-            method: 'POST',
-            body: formData
+            const formData = new FormData(this);
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('Respuesta enviada exitosamente');
+                location.reload();  // Recargar la página para actualizar la lista de preguntas
+            } else {
+                alert('Error al enviar la respuesta');
+            }
         });
-
-        // Convierte la respuesta a JSON
-        const data = await response.json();
-
-        // Maneja la respuesta
-        if (data.success) {
-            alert('Respuesta enviada exitosamente');
-        } else {
-            alert('Error al enviar la respuesta')
-        }
     });
 </script>
-
 {% endblock %}
 
